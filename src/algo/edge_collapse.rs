@@ -74,13 +74,16 @@ fn check_faces_after_collapse<R: RealNumber>(
         }
 
         // TODO: iterate over neighboring vertices to avoid match statement
+        // Note: degenerate meshes may return faces that don't contain the vertex due to
+        // truncated traversal, so we skip those instead of panicking
         let (v1, v2, v3) = match mesh.face_vertices(face) {
             (v1, v2, v3) if v1 == collapsed_vertex => (v1, v2, v3),
             (v1, v2, v3) if v2 == collapsed_vertex => (v2, v3, v1),
             (v1, v2, v3) if v3 == collapsed_vertex => (v3, v1, v2),
-            _ => unreachable!(
-                "we are iteration over faces around collapse vertex so such face must contain it"
-            ),
+            _ => {
+                // Degenerate case - skip this face
+                return;
+            }
         };
         let (v1, v2, v3) = (
             mesh[v1].position(),

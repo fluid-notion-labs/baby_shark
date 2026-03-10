@@ -99,32 +99,84 @@ impl IncrementalRemesher {
         let max_edge_length = R::f64(4.0 / 3.0) * target_edge_length;
         let min_edge_length = R::f64(4.0 / 5.0) * target_edge_length;
 
+        // eprintln!(
+        //     "[baby_shark] Starting remesh with {} iterations",
+        //     self.iterations
+        // );
+        // eprintln!(
+        //     "[baby_shark] Initial mesh: {} vertices, {} faces",
+        //     mesh.vertices().count(),
+        //     mesh.faces().count()
+        // );
+
         let mut reference_mesh = Grid::empty();
         if self.project_vertices {
+            // eprintln!("[baby_shark] Building reference mesh grid...");
             reference_mesh = Grid::from_mesh(mesh);
+            // eprintln!("[baby_shark] Reference mesh grid built");
         }
 
-        for _ in 0..self.iterations {
+        for _iter in 0..self.iterations {
+            // eprintln!("[baby_shark] Iteration {}/{}", iter + 1, self.iterations);
+
             if self.split_edges {
+                // eprintln!(
+                //     "[baby_shark]   Splitting edges (max_length={:?})...",
+                //     max_edge_length
+                // );
                 self.split_edges(mesh, max_edge_length);
+                // eprintln!(
+                //     "[baby_shark]   After split: {} vertices, {} faces",
+                //     mesh.vertices().count(),
+                //     mesh.faces().count()
+                // );
             }
 
             if self.collapse_edges {
+                // eprintln!(
+                //     "[baby_shark]   Collapsing edges (min_length={:?})...",
+                //     min_edge_length
+                // );
                 self.collapse_edges(mesh, min_edge_length);
+                // eprintln!(
+                //     "[baby_shark]   After collapse: {} vertices, {} faces",
+                //     mesh.vertices().count(),
+                //     mesh.faces().count()
+                // );
             }
 
             if self.flip_edges {
+                // eprintln!("[baby_shark]   Flipping edges...");
                 self.flip_edges(mesh);
+                // eprintln!(
+                //     "[baby_shark]   After flip: {} vertices, {} faces",
+                //     mesh.vertices().count(),
+                //     mesh.faces().count()
+                // );
             }
 
             if self.shift_vertices {
+                // eprintln!("[baby_shark]   Shifting vertices...");
                 self.shift_vertices(mesh, target_edge_length * target_edge_length);
+                // eprintln!(
+                //     "[baby_shark]   After shift: {} vertices, {} faces",
+                //     mesh.vertices().count(),
+                //     mesh.faces().count()
+                // );
             }
 
             if self.project_vertices {
+                // eprintln!("[baby_shark]   Projecting vertices...");
                 self.project_vertices(mesh, &reference_mesh, target_edge_length);
+                // eprintln!(
+                //     "[baby_shark]   After project: {} vertices, {} faces",
+                //     mesh.vertices().count(),
+                //     mesh.faces().count()
+                // );
             }
         }
+
+        // eprintln!("[baby_shark] Remesh complete!");
     }
 
     fn split_edges<R: RealNumber>(&self, mesh: &mut CornerTable<R>, max_edge_length: R) {
